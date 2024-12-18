@@ -1,9 +1,9 @@
 ---
 defaults:
-    contact: idebugall@gmail.com
+    contact: mohammed.3laa@gmail.com
 
-devnet-cml-lab:
-    username: cisco
+home-lab:
+    username: moalaa
     password: cisco
     connection_options:
         napalm:

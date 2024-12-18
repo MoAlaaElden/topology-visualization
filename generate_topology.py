@@ -34,64 +34,64 @@ from nornir import InitNornir
 from nornir.plugins.tasks.networking import napalm_get
 
 NORNIR_CONFIG_FILE = "nornir_config.yml"
-OUTPUT_TOPOLOGY_FILENAME = 'topology.js'
-CACHED_TOPOLOGY_FILENAME = 'cached_topology.json'
+OUTPUT_TOPOLOGY_FILENAME = "topology.js"
+CACHED_TOPOLOGY_FILENAME = "cached_topology.json"
 TOPOLOGY_FILE_HEAD = "\n\nvar topologyData = "
 
 # Topology layers would be sorted
 # in the same descending order
 # as in the tuple below
 NX_LAYER_SORT_ORDER = (
-    'undefined',
-    'outside',
-    'edge-switch',
-    'edge-router',
-    'core-router',
-    'core-switch',
-    'distribution-router',
-    'distribution-switch',
-    'leaf',
-    'spine',
-    'access-switch'
+    "undefined",
+    "outside",
+    "edge-switch",
+    "edge-router",
+    "core-router",
+    "core-switch",
+    "distribution-router",
+    "distribution-switch",
+    "leaf",
+    "spine",
+    "access-switch",
 )
 
 
 nr = InitNornir(config_file=NORNIR_CONFIG_FILE)
 
 icon_capability_map = {
-    'router': 'router',
-    'switch': 'switch',
-    'bridge': 'switch',
-    'station': 'host'
+    "router": "router",
+    "switch": "switch",
+    "bridge": "switch",
+    "station": "host",
 }
 
 
 icon_model_map = {
-    'CSR1000V': 'router',
-    'Nexus': 'switch',
-    'IOSXRv': 'router',
-    'IOSv': 'switch',
-    '2901': 'router',
-    '2911': 'router',
-    '2921': 'router',
-    '2951': 'router',
-    '4321': 'router',
-    '4331': 'router',
-    '4351': 'router',
-    '4421': 'router',
-    '4431': 'router',
-    '4451': 'router',
-    '2960': 'switch',
-    '3750': 'switch',
-    '3850': 'switch',
+    "CSR1000V": "router",
+    "Nexus": "switch",
+    "IOSXRv": "router",
+    "IOSv": "switch",
+    "2901": "router",
+    "2911": "router",
+    "2921": "router",
+    "2951": "router",
+    "4321": "router",
+    "4331": "router",
+    "4351": "router",
+    "4421": "router",
+    "4431": "router",
+    "4451": "router",
+    "2960": "switch",
+    "3750": "switch",
+    "3850": "switch",
 }
 
 
 interface_full_name_map = {
-    'Eth': 'Ethernet',
-    'Fa': 'FastEthernet',
-    'Gi': 'GigabitEthernet',
-    'Te': 'TenGigabitEthernet',
+    "Eth": "Ethernet",
+    "Fa": "FastEthernet",
+    "Gi": "GigabitEthernet",
+    "Te": "TenGigabitEthernet",
 }
 
 
@@ -111,24 +111,24 @@ def if_shortname(ifname):
     return ifname
 
 
-def get_icon_type(device_cap_name, device_model=''):
+def get_icon_type(device_cap_name, device_model):
     """
     Device icon selection function. Selection order:
     - LLDP capabilities mapping.
     - Device model mapping.
     - Default 'unknown'.
     """
-    if device_cap_name:
-        icon_type = icon_capability_map.get(device_cap_name)
-        if icon_type:
-            return icon_type
+    # if device_cap_name:
+    #     icon_type = icon_capability_map.get(device_cap_name)
+    #     if icon_type:
+    #         return icon_type
     if device_model:
         # Check substring presence in icon_model_map keys
         # string until the first match
         for model_shortname, icon_type in icon_model_map.items():
             if model_shortname in device_model:
                 return icon_type
-    return 'unknown'
+    return "unknown"
 
 
 def get_node_layer_sort_preference(device_role):
@@ -148,10 +148,7 @@ def get_node_layer_sort_preference(device_role):
 
 def get_host_data(task):
     """Nornir Task for data collection on target hosts."""
-    task.run(
-        task=napalm_get,
-        getters=['facts', 'lldp_neighbors_detail']
-    )
+    task.run(task=napalm_get, getters=["facts", "lldp_neighbors_detail"])
 
 
 def normalize_result(nornir_job_result):
@@ -168,24 +165,28 @@ def normalize_result(nornir_job_result):
             # Use host inventory object name as a key.
             global_lldp_data[device] = {}
             global_facts[device] = {
-                'nr_role': nr.inventory.hosts[device].get('role', 'undefined'),
-                'nr_ip': nr.inventory.hosts[device].get('hostname', 'n/a'),
+                "nr_role": nr.inventory.hosts[device].get("role", "undefined"),
+                "nr_ip": nr.inventory.hosts[device].get("hostname", "n/a"),
             }
             continue
         # Use FQDN as unique ID for devices withing the script.
-        device_fqdn = output[1].result['facts']['fqdn']
-        if not device_fqdn:
+        device_fqdn = output[1].result["facts"]["fqdn"]
+        if "not set" in device_fqdn:
             # If FQDN is not set use hostname.
             # LLDP TLV follows the same logic.
-            device_fqdn = output[1].result['facts']['hostname']
+            device_fqdn = output[1].result["facts"]["hostname"]
         if not device_fqdn:
             # Use host inventory object name as a key if
             # neither FQDN nor hostname are set
             device_fqdn = device
-        global_facts[device_fqdn] = output[1].result['facts']
-        global_facts[device_fqdn]['nr_role'] = nr.inventory.hosts[device].get('role', 'undefined')
-        global_facts[device_fqdn]['nr_ip'] = nr.inventory.hosts[device].get('hostname', 'n/a')
-        global_lldp_data[device_fqdn] = output[1].result['lldp_neighbors_detail']
+        global_facts[device_fqdn] = output[1].result["facts"]
+        global_facts[device_fqdn]["nr_role"] = nr.inventory.hosts[device].get(
+            "role", "undefined"
+        )
+        global_facts[device_fqdn]["nr_ip"] = nr.inventory.hosts[device].get(
+            "hostname", "n/a"
+        )
+        global_lldp_data[device_fqdn] = output[1].result["lldp_neighbors_detail"]
     return global_lldp_data, global_facts
 
 
@@ -207,35 +208,43 @@ def extract_lldp_details(lldp_data_dict):
             continue
         for interface, neighbors in lldp_data.items():
             for neighbor in neighbors:
-                if not neighbor['remote_system_name']:
+                if not neighbor["remote_system_name"]:
                     continue
-                discovered_hosts.add(neighbor['remote_system_name'])
-                if neighbor['remote_system_enable_capab']:
+                discovered_hosts.add(neighbor["remote_system_name"])
+                if neighbor["remote_system_enable_capab"]:
                     # In case of multiple enable capabilities pick first in the list
-                    lldp_capabilities_dict[neighbor['remote_system_name']] = (
-                        neighbor['remote_system_enable_capab'][0]
-                    )
+                    lldp_capabilities_dict[neighbor["remote_system_name"]] = neighbor[
+                        "remote_system_enable_capab"
+                    ][0]
                 else:
-                    lldp_capabilities_dict[neighbor['remote_system_name']] = ''
+                    lldp_capabilities_dict[neighbor["remote_system_name"]] = ""
                 # Store interconnections in a following format:
                 # ((source_hostname, source_port), (dest_hostname, dest_port))
                 local_end = (host, interface)
                 remote_end = (
-                    neighbor['remote_system_name'],
-                    if_fullname(neighbor['remote_port'])
+                    neighbor["remote_system_name"],
+                    if_fullname(neighbor["remote_port"]),
                 )
                 # Check if the link is not a permutation of already added one
                 # (local_end, remote_end) equals (remote_end, local_end)
                 link_is_already_there = (
-                    (local_end, remote_end) in global_interconnections
-                    or (remote_end, local_end) in global_interconnections
-                )
+                    local_end,
+                    remote_end,
+                ) in global_interconnections or (
+                    remote_end,
+                    local_end,
+                ) in global_interconnections
                 if link_is_already_there:
                     continue
-                global_interconnections.append((
-                    (host, interface),
-                    (neighbor['remote_system_name'], if_fullname(neighbor['remote_port']))
-                ))
+                global_interconnections.append(
+                    (
+                        (host, interface),
+                        (
+                            neighbor["remote_system_name"],
+                            if_fullname(neighbor["remote_port"]),
+                        ),
+                    )
+                )
     return [discovered_hosts, global_interconnections, lldp_capabilities_dict]
 
 
@@ -251,57 +260,60 @@ def generate_topology_json(*args):
     discovered_hosts, interconnections, lldp_capabilities_dict, facts = args
     host_id = 0
     host_id_map = {}
-    topology_dict = {'nodes': [], 'links': []}
+    topology_dict = {"nodes": [], "links": []}
     for host in discovered_hosts:
-        device_model = 'n/a'
-        device_serial = 'n/a'
-        device_role = 'undefined'
-        device_ip = 'n/a'
+        device_model = "n/a"
+        device_serial = "n/a"
+        device_role = "undefined"
+        device_ip = "n/a"
         if facts.get(host):
-            device_model = facts[host].get('model', 'n/a')
-            device_serial = facts[host].get('serial_number', 'n/a')
-            device_role = facts[host].get('nr_role', 'undefined')
-            device_ip = facts[host].get('nr_ip', 'n/a')
+            device_model = facts[host].get("model", "n/a")
+            device_serial = facts[host].get("serial_number", "n/a")
+            device_role = facts[host].get("nr_role", "undefined")
+            device_ip = facts[host].get("nr_ip", "n/a")
         host_id_map[host] = host_id
-        topology_dict['nodes'].append({
-            'id': host_id,
-            'name': host,
-            'primaryIP': device_ip,
-            'model': device_model,
-            'serial_number': device_serial,
-            'layerSortPreference': get_node_layer_sort_preference(
-                device_role
-            ),
-            'icon': get_icon_type(
-                lldp_capabilities_dict.get(host, ''),
-                device_model
-            )
-        })
+        topology_dict["nodes"].append(
+            {
+                "id": host_id,
+                "name": host,
+                "primaryIP": device_ip,
+                "model": device_model,
+                "serial_number": device_serial,
+                "layerSortPreference": get_node_layer_sort_preference(device_role),
+                "icon": get_icon_type(
+                    lldp_capabilities_dict.get(host, ""), device_model
+                ),
+            }
+        )
         host_id += 1
     link_id = 0
     for link in interconnections:
-        topology_dict['links'].append({
-            'id': link_id,
-            'source': host_id_map[link[0][0]],
-            'target': host_id_map[link[1][0]],
-            'srcIfName': if_shortname(link[0][1]),
-            'srcDevice': link[0][0],
-            'tgtIfName': if_shortname(link[1][1]),
-            'tgtDevice': link[1][0],
-        })
+        topology_dict["links"].append(
+            {
+                "id": link_id,
+                "source": host_id_map[link[0][0]],
+                "target": host_id_map[link[1][0]],
+                "srcIfName": if_shortname(link[0][1]),
+                "srcDevice": link[0][0],
+                "tgtIfName": if_shortname(link[1][1]),
+                "tgtDevice": link[1][0],
+            }
+        )
         link_id += 1
     return topology_dict
 
 
-def write_topology_file(topology_json, header=TOPOLOGY_FILE_HEAD, dst=OUTPUT_TOPOLOGY_FILENAME):
-    with open(dst, 'w') as topology_file:
+def write_topology_file(
+    topology_json, header=TOPOLOGY_FILE_HEAD, dst=OUTPUT_TOPOLOGY_FILENAME
+):
+    with open(dst, "w") as topology_file:
         topology_file.write(header)
         topology_file.write(json.dumps(topology_json, indent=4, sort_keys=True))
-        topology_file.write(';')
+        topology_file.write(";")
 
 
 def write_topology_cache(topology_json, dst=CACHED_TOPOLOGY_FILENAME):
-    with open(dst, 'w') as cached_file:
+    with open(dst, "w") as cached_file:
         cached_file.write(json.dumps(topology_json, indent=4, sort_keys=True))
 
 
@@ -311,7 +323,7 @@ def read_cached_topology(filename=CACHED_TOPOLOGY_FILENAME):
     if not os.path.isfile(filename):
         return {}
     cached_topology = {}
-    with open(filename, 'r') as file:
+    with open(filename, "r") as file:
         try:
             cached_topology = json.loads(file.read())
         except ValueError as err:
@@ -333,47 +345,53 @@ def get_topology_diff(cached, current):
     - dict with merged input topologies with extended
       attributes for topology changes visualization
     """
-    diff_nodes = {'added': [], 'deleted': []}
-    diff_links = {'added': [], 'deleted': []}
-    diff_merged_topology = {'nodes': [], 'links': []}
+    diff_nodes = {"added": [], "deleted": []}
+    diff_links = {"added": [], "deleted": []}
+    diff_merged_topology = {"nodes": [], "links": []}
     # Parse links from topology dicts into the following format:
     # (topology_link_obj, (source_hostnme, source_port), (dest_hostname, dest_port))
-    cached_links = [(x, ((x['srcDevice'], x['srcIfName']), (x['tgtDevice'], x['tgtIfName']))) for x in cached['links']]
-    links = [(x, ((x['srcDevice'], x['srcIfName']), (x['tgtDevice'], x['tgtIfName']))) for x in current['links']]
+    cached_links = [
+        (x, ((x["srcDevice"], x["srcIfName"]), (x["tgtDevice"], x["tgtIfName"])))
+        for x in cached["links"]
+    ]
+    links = [
+        (x, ((x["srcDevice"], x["srcIfName"]), (x["tgtDevice"], x["tgtIfName"])))
+        for x in current["links"]
+    ]
     # Parse nodes from topology dicts into the following format:
     # (topology_node_obj, (hostname,))
     # Some additional values might be added for comparison later on to the tuple above.
-    cached_nodes = [(x, (x['name'],)) for x in cached['nodes']]
-    nodes = [(x, (x['name'],)) for x in current['nodes']]
+    cached_nodes = [(x, (x["name"],)) for x in cached["nodes"]]
+    nodes = [(x, (x["name"],)) for x in current["nodes"]]
     # Search for deleted and added hostnames.
     node_id = 0
     host_id_map = {}
     for raw_data, node in nodes:
         if node in [x[1] for x in cached_nodes]:
-            raw_data['id'] = node_id
-            host_id_map[raw_data['name']] = node_id
-            raw_data['is_new'] = 'no'
-            raw_data['is_dead'] = 'no'
-            diff_merged_topology['nodes'].append(raw_data)
+            raw_data["id"] = node_id
+            host_id_map[raw_data["name"]] = node_id
+            raw_data["is_new"] = "no"
+            raw_data["is_dead"] = "no"
+            diff_merged_topology["nodes"].append(raw_data)
             node_id += 1
             continue
-        diff_nodes['added'].append(node)
-        raw_data['id'] = node_id
-        host_id_map[raw_data['name']] = node_id
-        raw_data['is_new'] = 'yes'
-        raw_data['is_dead'] = 'no'
-        diff_merged_topology['nodes'].append(raw_data)
+        diff_nodes["added"].append(node)
+        raw_data["id"] = node_id
+        host_id_map[raw_data["name"]] = node_id
+        raw_data["is_new"] = "yes"
+        raw_data["is_dead"] = "no"
+        diff_merged_topology["nodes"].append(raw_data)
         node_id += 1
     for raw_data, cached_node in cached_nodes:
         if cached_node in [x[1] for x in nodes]:
             continue
-        diff_nodes['deleted'].append(cached_node)
-        raw_data['id'] = node_id
-        host_id_map[raw_data['name']] = node_id
-        raw_data['is_new'] = 'no'
-        raw_data['is_dead'] = 'yes'
-        raw_data['icon'] = 'dead_node'
-        diff_merged_topology['nodes'].append(raw_data)
+        diff_nodes["deleted"].append(cached_node)
+        raw_data["id"] = node_id
+        host_id_map[raw_data["name"]] = node_id
+        raw_data["is_new"] = "no"
+        raw_data["is_dead"] = "yes"
+        raw_data["icon"] = "dead_node"
+        diff_merged_topology["nodes"].append(raw_data)
         node_id += 1
     # Search for deleted and added interconnections.
     # Interface change on some side is consideres as
@@ -383,44 +401,48 @@ def get_topology_diff(cached, current):
     link_id = 0
     for raw_data, link in links:
         src, dst = link
-        if not (src, dst) in [x[1] for x in cached_links] and not (dst, src) in [x[1] for x in cached_links]:
-            diff_links['added'].append((src, dst))
-            raw_data['id'] = link_id
+        if not (src, dst) in [x[1] for x in cached_links] and not (dst, src) in [
+            x[1] for x in cached_links
+        ]:
+            diff_links["added"].append((src, dst))
+            raw_data["id"] = link_id
             link_id += 1
-            raw_data['source'] = host_id_map[src[0]]
-            raw_data['target'] = host_id_map[dst[0]]
-            raw_data['is_new'] = 'yes'
-            raw_data['is_dead'] = 'no'
-            diff_merged_topology['links'].append(raw_data)
+            raw_data["source"] = host_id_map[src[0]]
+            raw_data["target"] = host_id_map[dst[0]]
+            raw_data["is_new"] = "yes"
+            raw_data["is_dead"] = "no"
+            diff_merged_topology["links"].append(raw_data)
             continue
-        raw_data['id'] = link_id
+        raw_data["id"] = link_id
         link_id += 1
-        raw_data['source'] = host_id_map[src[0]]
-        raw_data['target'] = host_id_map[dst[0]]
-        raw_data['is_new'] = 'no'
-        raw_data['is_dead'] = 'no'
-        diff_merged_topology['links'].append(raw_data)
+        raw_data["source"] = host_id_map[src[0]]
+        raw_data["target"] = host_id_map[dst[0]]
+        raw_data["is_new"] = "no"
+        raw_data["is_dead"] = "no"
+        diff_merged_topology["links"].append(raw_data)
     for raw_data, link in cached_links:
         src, dst = link
-        if not (src, dst) in [x[1] for x in links] and not (dst, src) in [x[1] for x in links]:
-            diff_links['deleted'].append((src, dst))
-            raw_data['id'] = link_id
+        if not (src, dst) in [x[1] for x in links] and not (dst, src) in [
+            x[1] for x in links
+        ]:
+            diff_links["deleted"].append((src, dst))
+            raw_data["id"] = link_id
             link_id += 1
-            raw_data['source'] = host_id_map[src[0]]
-            raw_data['target'] = host_id_map[dst[0]]
-            raw_data['is_new'] = 'no'
-            raw_data['is_dead'] = 'yes'
-            diff_merged_topology['links'].append(raw_data)
+            raw_data["source"] = host_id_map[src[0]]
+            raw_data["target"] = host_id_map[dst[0]]
+            raw_data["is_new"] = "no"
+            raw_data["is_dead"] = "yes"
+            diff_merged_topology["links"].append(raw_data)
     return diff_nodes, diff_links, diff_merged_topology
 
 
 def topology_is_changed(diff_result):
     diff_nodes, diff_links, *ignore = diff_result
     changed = (
-        diff_nodes['added']
-        or diff_nodes['deleted']
-        or diff_links['added']
-        or diff_links['deleted']
+        diff_nodes["added"]
+        or diff_nodes["deleted"]
+        or diff_links["added"]
+        or diff_links["deleted"]
     )
     if changed:
         return True
@@ -433,63 +455,87 @@ def print_diff(diff_result):
     console print function.
     """
     diff_nodes, diff_links, *ignore = diff_result
-    if not (diff_nodes['added'] or diff_nodes['deleted'] or diff_links['added'] or diff_links['deleted']):
-        print('No topology changes since last run.')
+    if not (
+        diff_nodes["added"]
+        or diff_nodes["deleted"]
+        or diff_links["added"]
+        or diff_links["deleted"]
+    ):
+        print("No topology changes since last run.")
         return
-    print('Topology changes have been discovered:')
-    if diff_nodes['added']:
-        print('')
-        print('^^^^^^^^^^^^^^^^^^^^')
-        print('New Network Devices:')
-        print('vvvvvvvvvvvvvvvvvvvv')
-        for node in diff_nodes['added']:
-            print(f'Hostname: {node[0]}')
-    if diff_nodes['deleted']:
-        print('')
-        print('^^^^^^^^^^^^^^^^^^^^^^^^')
-        print('Deleted Network Devices:')
-        print('vvvvvvvvvvvvvvvvvvvvvvvv')
-        for node in diff_nodes['deleted']:
-            print(f'Hostname: {node[0]}')
-    if diff_links['added']:
-        print('')
-        print('^^^^^^^^^^^^^^^^^^^^^^')
-        print('New Interconnections:')
-        print('vvvvvvvvvvvvvvvvvvvvvv')
-        for src, dst in diff_links['added']:
-            print(f'From {src[0]}({src[1]}) To {dst[0]}({dst[1]})')
-    if diff_links['deleted']:
-        print('')
-        print('^^^^^^^^^^^^^^^^^^^^^^^^^')
-        print('Deleted Interconnections:')
-        print('vvvvvvvvvvvvvvvvvvvvvvvvv')
-        for src, dst in diff_links['deleted']:
-            print(f'From {src[0]}({src[1]}) To {dst[0]}({dst[1]})')
-    print('')
+    print("Topology changes have been discovered:")
+    if diff_nodes["added"]:
+        print("")
+        print("^^^^^^^^^^^^^^^^^^^^")
+        print("New Network Devices:")
+        print("vvvvvvvvvvvvvvvvvvvv")
+        for node in diff_nodes["added"]:
+            print(f"Hostname: {node[0]}")
+    if diff_nodes["deleted"]:
+        print("")
+        print("^^^^^^^^^^^^^^^^^^^^^^^^")
+        print("Deleted Network Devices:")
+        print("vvvvvvvvvvvvvvvvvvvvvvvv")
+        for node in diff_nodes["deleted"]:
+            print(f"Hostname: {node[0]}")
+    if diff_links["added"]:
+        print("")
+        print("^^^^^^^^^^^^^^^^^^^^^^")
+        print("New Interconnections:")
+        print("vvvvvvvvvvvvvvvvvvvvvv")
+        for src, dst in diff_links["added"]:
+            print(f"From {src[0]}({src[1]}) To {dst[0]}({dst[1]})")
+    if diff_links["deleted"]:
+        print("")
+        print("^^^^^^^^^^^^^^^^^^^^^^^^^")
+        print("Deleted Interconnections:")
+        print("vvvvvvvvvvvvvvvvvvvvvvvvv")
+        for src, dst in diff_links["deleted"]:
+            print(f"From {src[0]}({src[1]}) To {dst[0]}({dst[1]})")
+    print("")
 
 
 def good_luck_have_fun():
     """Main script logic"""
     get_host_data_result = nr.run(get_host_data)
     GLOBAL_LLDP_DATA, GLOBAL_FACTS = normalize_result(get_host_data_result)
+    print("=" * 80)
+    print("GLOBAL_FACTS:" + str(GLOBAL_FACTS))
+    print("=" * 80)
+    print("GLOBAL_LLDP_DATA:" + str(GLOBAL_LLDP_DATA))
+    print("=" * 80)
     TOPOLOGY_DETAILS = extract_lldp_details(GLOBAL_LLDP_DATA)
     TOPOLOGY_DETAILS.append(GLOBAL_FACTS)
     TOPOLOGY_DICT = generate_topology_json(*TOPOLOGY_DETAILS)
     CACHED_TOPOLOGY = read_cached_topology()
     write_topology_file(TOPOLOGY_DICT)
     write_topology_cache(TOPOLOGY_DICT)
-    print('Open main.html in a project root with your browser to view the topology')
+    print("Open main.html in a project root with your browser to view the topology")
     if CACHED_TOPOLOGY:
         DIFF_DATA = get_topology_diff(CACHED_TOPOLOGY, TOPOLOGY_DICT)
         print_diff(DIFF_DATA)
-        write_topology_file(DIFF_DATA[2], dst='diff_topology.js')
+        write_topology_file(DIFF_DATA[2], dst="diff_topology.js")
         if topology_is_changed:
-            print('Open diff_page.html in a project root to view the changes.')
+            print("Open diff_page.html in a project root to view the changes.")
             print("Optionally, open main.html and click 'Display diff' button")
     else:
         # write current topology to diff file if the cache is missing
-        write_topology_file(TOPOLOGY_DICT, dst='diff_topology.js')
+        write_topology_file(TOPOLOGY_DICT, dst="diff_topology.js")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     good_luck_have_fun()
+
+
+""" Dec Output
+================================================================================
+GLOBAL_FACTS:{'EG-CAI001-SW1-vIOS-L2.not set': 
+                {'uptime': 483240, 'vendor': 'Cisco', 'os_version': 'vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'serial_number': '9DUSSR66QOK', 'model': 'IOSv', 'hostname': 'EG-CAI001-SW1-vIOS-L2', 'fqdn': 'EG-CAI001-SW1-vIOS-L2.not set', 'interface_list': ['GigabitEthernet0/0', 'GigabitEthernet0/1', 'GigabitEthernet0/2', 'GigabitEthernet0/3', 'GigabitEthernet1/0', 'GigabitEthernet1/1', 'GigabitEthernet1/2', 'GigabitEthernet1/3', 'Loopback0', 'Vlan1'], 'nr_role': 'undefined', 'nr_ip': '192.168.100.111'}, 
+              'EG-CAI002-SW2-vIOS-L2.not set': 
+                {'uptime': 483780, 'vendor': 'Cisco', 'os_version': 'vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'serial_number': '96K8NIZQRSK', 'model': 'IOSv', 'hostname': 'EG-CAI002-SW2-vIOS-L2', 'fqdn': 'EG-CAI002-SW2-vIOS-L2.not set', 'interface_list': ['GigabitEthernet0/0', 'GigabitEthernet0/1', 'GigabitEthernet0/2', 'GigabitEthernet0/3', 'GigabitEthernet1/0', 'GigabitEthernet1/1', 'GigabitEthernet1/2', 'GigabitEthernet1/3', 'Loopback0', 'Vlan1'], 'nr_role': 'undefined', 'nr_ip': '192.168.100.112'}, 
+              'EG-CAI003-SW3-vIOS-L2.not set': 
+                {'uptime': 483720, 'vendor': 'Cisco', 'os_version': 'vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'serial_number': '9P1417XO612', 'model': 'IOSv', 'hostname': 'EG-CAI003-SW3-vIOS-L2', 'fqdn': 'EG-CAI003-SW3-vIOS-L2.not set', 'interface_list': ['GigabitEthernet0/0', 'GigabitEthernet0/1', 'GigabitEthernet0/2', 'GigabitEthernet0/3', 'GigabitEthernet1/0', 'GigabitEthernet1/1', 'GigabitEthernet1/2', 'GigabitEthernet1/3', 'Loopback0', 'Vlan1'], 'nr_role': 'undefined', 'nr_ip': '192.168.100.113'}}
+================================================================================
+GLOBAL_LLDP_DATA:{'EG-CAI001-SW1-vIOS-L2.not set': {'GigabitEthernet0/2': [{'remote_chassis_id': '5056.9400.0200', 'remote_port': 'Gi0/1', 'remote_port_description': 'GigabitEthernet0/1', 'remote_system_name': 'EG-CAI002-SW2-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}], 'GigabitEthernet0/3': [{'remote_chassis_id': '5063.1000.0300', 'remote_port': 'Gi0/1', 'remote_port_description': 'GigabitEthernet0/1', 'remote_system_name': 'EG-CAI003-SW3-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}]}, 'EG-CAI002-SW2-vIOS-L2.not set': {'GigabitEthernet0/1': [{'remote_chassis_id': '5028.3400.0100', 'remote_port': 'Gi0/2', 'remote_port_description': 'GigabitEthernet0/2', 'remote_system_name': 'EG-CAI001-SW1-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}], 'GigabitEthernet0/3': [{'remote_chassis_id': '5063.1000.0300', 'remote_port': 'Gi0/2', 'remote_port_description': 'GigabitEthernet0/2', 'remote_system_name': 'EG-CAI003-SW3-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}]}, 'EG-CAI003-SW3-vIOS-L2.not set': {'GigabitEthernet0/2': [{'remote_chassis_id': '5056.9400.0200', 'remote_port': 'Gi0/3', 'remote_port_description': 'GigabitEthernet0/3', 'remote_system_name': 'EG-CAI002-SW2-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}], 'GigabitEthernet0/1': [{'remote_chassis_id': '5028.3400.0100', 'remote_port': 'Gi0/3', 'remote_port_description': 'GigabitEthernet0/3', 'remote_system_name': 'EG-CAI001-SW1-vIOS-L2', 'remote_system_description': 'Cisco IOS Software, vios_l2 Software (vios_l2-ADVENTERPRISEK9-M), Version 15.2(4.0.55)E, TEST ENGINEERING ESTG_WEEKLY BUILD, synced to  END_OF_FLO_ISP', 'remote_system_capab': ['bridge', 'router'], 'remote_system_enable_capab': ['router'], 'parent_interface': ''}]}}
+================================================================================
+"""

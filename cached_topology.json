@@ -1,11 +1,7 @@
-
-
-var topologyData = {
+{
     "links": [
         {
             "id": 0,
-            "is_dead": "no",
-            "is_new": "no",
             "source": 2,
             "srcDevice": "EG-CAI001-SW1-vIOS-L2",
             "srcIfName": "Gi0/2",
@@ -15,8 +11,6 @@ var topologyData = {
         },
         {
             "id": 1,
-            "is_dead": "no",
-            "is_new": "no",
             "source": 2,
             "srcDevice": "EG-CAI001-SW1-vIOS-L2",
             "srcIfName": "Gi0/3",
@@ -26,8 +20,6 @@ var topologyData = {
         },
         {
             "id": 2,
-            "is_dead": "no",
-            "is_new": "yes",
             "source": 1,
             "srcDevice": "EG-CAI002-SW2-vIOS-L2",
             "srcIfName": "Gi0/3",
@@ -40,8 +32,6 @@ var topologyData = {
         {
             "icon": "switch",
             "id": 0,
-            "is_dead": "no",
-            "is_new": "no",
             "layerSortPreference": 11,
             "model": "IOSv",
             "name": "EG-CAI003-SW3-vIOS-L2",
@@ -51,8 +41,6 @@ var topologyData = {
         {
             "icon": "switch",
             "id": 1,
-            "is_dead": "no",
-            "is_new": "no",
             "layerSortPreference": 11,
             "model": "IOSv",
             "name": "EG-CAI002-SW2-vIOS-L2",
@@ -62,8 +50,6 @@ var topologyData = {
         {
             "icon": "switch",
             "id": 2,
-            "is_dead": "no",
-            "is_new": "no",
             "layerSortPreference": 11,
             "model": "IOSv",
             "name": "EG-CAI001-SW1-vIOS-L2",
@@ -71,4 +57,4 @@ var topologyData = {
             "serial_number": "9DUSSR66QOK"
         }
     ]
-};
+}

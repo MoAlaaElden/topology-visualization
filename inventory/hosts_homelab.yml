@@ -1,0 +1,26 @@
+---
+EG-CAI001-SW1-vIOS-L2:
+    hostname: 192.168.100.111
+    platform: ios
+    site: EMEAEGCAI001
+    groups:
+        - home-lab
+    data:
+        role: access-switch
+
+EG-CAI002-SW2-vIOS-L2:
+    hostname: 192.168.100.112
+    platform: ios
+    site: EMEAEGCAI002
+    groups:
+        - home-lab
+    data:
+        role: access-switch
+
+EG-CAI003-SW3-vIOS-L2:
+    hostname: 192.168.100.113
+    platform: ios
+    groups:
+        - home-lab
+    data:
+        role: access-switch
